@@ -3,7 +3,7 @@ import subprocess
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from pytubefix import YouTube
 from dotenv import load_dotenv
@@ -24,12 +24,10 @@ def get_session():
     try:
         mariadb_pass = os.environ.get("MYSQL_ROOT_PASSWORD")
         mariadb_host = os.environ.get("MYSQL_HOST")
-        engine_string = 'mysql+pymysql://root:' + str(mariadb_pass) + "@" + str(mariadb_host) + '/managerzone'
+        engine_string = 'mysql+pymysql://root:' + str(mariadb_pass) + "@" + str(mariadb_host) + '/karatube'
         engine = create_engine(engine_string)
     except Exception as e:
         return None
-    
-    Base.metadata.create_all(engine)
     
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -40,11 +38,12 @@ load_dotenv()
 
 session = get_session()
 
+#songs = session.query(Song).filter_by(downloaded=0)
 songs = session.query(Song).filter_by(downloaded=0)
 
 count = 0
 for song in songs:
-    filename = os.environ.get("LOCAL_PATH") + str(song.youtubeid) + ".mp4"
+    filename = os.environ.get("LOCAL_PATH") + "/" + str(song.youtubeid) + ".mp4"
     download_url = YT_BASE_URL + str(song.youtubeid)
     try:
         YouTube(download_url).streams.first().download(filename=filename)
@@ -61,4 +60,3 @@ if count > 0:
         print(f"rsync failed with error: {e}")
     else:
         print(result.stdout)
-
