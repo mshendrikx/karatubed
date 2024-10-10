@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String
@@ -7,8 +8,10 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from pytubefix import YouTube
 from dotenv import load_dotenv
+from pathlib import Path
 
 YT_BASE_URL = "https://www.youtube.com/watch?v="
+SCRIPT_PATH = str(Path(__file__).parent.absolute()) + "/" + os.path.basename(__file__)
 
 Base = declarative_base()
 
@@ -34,9 +37,21 @@ def get_session():
 
     return session
 
+def is_script_running():
+    cmd = ["ps", "aux"]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    for line in proc.stdout:
+        if SCRIPT_PATH.encode() in line:
+            return True
+    return False
+
 load_dotenv()
 
+#if is_script_running():
+#    sys.exit()
+
 session = get_session()
+
 
 songs = session.query(Song).filter_by(downloaded=0)
 

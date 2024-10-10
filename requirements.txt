@@ -3,3 +3,4 @@ mysql-connector-python
 pymysql
 python-dotenv
 pytubefix
+psutil
