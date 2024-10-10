@@ -38,11 +38,7 @@ load_dotenv()
 
 session = get_session()
 
-#songs = session.query(Song).filter_by(downloaded=0)
 songs = session.query(Song).filter_by(downloaded=0)
-
-
-
 
 for song in songs:
     rm_cmd = ["rm"]
@@ -53,24 +49,19 @@ for song in songs:
     try:
         YouTube(download_url).streams.first().download(filename=filename)
     except Exception as e:
-        continue
+        1 == 1
     
     rsync_cmd.extend([filename, os.environ.get("REMOTE_PATH")])
     try:
         result = subprocess.run(rsync_cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
-        print(f"rsync failed with error: {e}")
-    else:
-        print(result.stdout)
+        1 == 1
     
     rm_cmd.extend([filename])
     try:
         result = subprocess.run(rm_cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
-        print(f"rsync failed with error: {e}")
-    else:
-        print(result.stdout)
-    
+        1 == 1
     
         
 
