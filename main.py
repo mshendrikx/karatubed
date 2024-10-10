@@ -41,27 +41,30 @@ session = get_session()
 songs = session.query(Song).filter_by(downloaded=0)
 
 for song in songs:
-    rm_cmd = ["rm"]
-    rsync_cmd = ["rsync", "-avz"]
+#    rm_cmd = ["rm"]
     video_file = str(song.youtubeid) + ".mp4"
     filename = os.environ.get("LOCAL_PATH") + "/" + video_file
-    download_url = YT_BASE_URL + str(song.youtubeid)
-    try:
-        YouTube(download_url).streams.first().download(filename=filename)
-    except Exception as e:
-        1 == 1
-    
+    if not os.path.exists(video_file):
+        download_url = YT_BASE_URL + str(song.youtubeid)
+        try:
+            YouTube(download_url).streams.first().download(filename=filename)
+        except Exception as e:
+           continue
+
+    rsync_cmd = ["rsync", "-avz"]    
     rsync_cmd.extend([filename, os.environ.get("REMOTE_PATH")])
     try:
         result = subprocess.run(rsync_cmd, check=True, capture_output=True, text=True)
+        song.downloaded = 1
+        session.commit()
     except subprocess.CalledProcessError as e:
         1 == 1
     
-    rm_cmd.extend([filename])
-    try:
-        result = subprocess.run(rm_cmd, check=True, capture_output=True, text=True)
-    except subprocess.CalledProcessError as e:
-        1 == 1
+#    rm_cmd.extend([filename])
+#    try:
+#        result = subprocess.run(rm_cmd, check=True, capture_output=True, text=True)
+#    except subprocess.CalledProcessError as e:
+#        1 == 1
     
         
 
