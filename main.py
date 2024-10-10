@@ -41,22 +41,36 @@ session = get_session()
 #songs = session.query(Song).filter_by(downloaded=0)
 songs = session.query(Song).filter_by(downloaded=0)
 
-count = 0
+
+
+
 for song in songs:
-    filename = os.environ.get("LOCAL_PATH") + "/" + str(song.youtubeid) + ".mp4"
+    rm_cmd = ["rm"]
+    rsync_cmd = ["rsync", "-avz"]
+    video_file = str(song.youtubeid) + ".mp4"
+    filename = os.environ.get("LOCAL_PATH") + "/" + video_file
     download_url = YT_BASE_URL + str(song.youtubeid)
     try:
         YouTube(download_url).streams.first().download(filename=filename)
     except Exception as e:
         continue
-    count += 1
     
-if count > 0:
-    rsync_cmd = ["rsync", "-avz"]
-    rsync_cmd.extend([os.environ.get("LOCAL_PATH"), os.environ.get("REMOTE_PATH")])
+    rsync_cmd.extend([filename, os.environ.get("REMOTE_PATH")])
     try:
         result = subprocess.run(rsync_cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
         print(f"rsync failed with error: {e}")
     else:
         print(result.stdout)
+    
+    rm_cmd.extend([filename])
+    try:
+        result = subprocess.run(rm_cmd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        print(f"rsync failed with error: {e}")
+    else:
+        print(result.stdout)
+    
+    
+        
+
