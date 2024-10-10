@@ -52,7 +52,6 @@ load_dotenv()
 
 session = get_session()
 
-
 songs = session.query(Song).filter_by(downloaded=0)
 
 for song in songs:
