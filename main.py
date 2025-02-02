@@ -57,16 +57,17 @@ songs = session.query(Song).filter_by(downloaded=0)
 for song in songs:
 #    rm_cmd = ["rm"]
     video_file = str(song.youtubeid) + ".mp4"
-    filename = os.environ.get("LOCAL_PATH") + "/" + video_file
+    video_path = os.environ.get("LOCAL_PATH")
+    full_file = video_path +'/' + video_file
     if not os.path.exists(video_file):
         download_url = YT_BASE_URL + str(song.youtubeid)
         try:
-            YouTube(download_url).streams.first().download(filename=filename)
+            YouTube(download_url).streams.first().download(output_path=video_path ,filename=video_file)
         except Exception as e:
            continue
 
     rsync_cmd = ["rsync", "-avz"]    
-    rsync_cmd.extend([filename, os.environ.get("REMOTE_PATH")])
+    rsync_cmd.extend([full_file, os.environ.get("REMOTE_PATH")])
     try:
         result = subprocess.run(rsync_cmd, check=True, capture_output=True, text=True)
         song.downloaded = 1
